@@ -80,11 +80,12 @@ class TulingWXBot(WXBot):
                         if src_id in self.m.players:
                             self.send_msg_by_uid(self.m.moveplayer(src_id,mm), src_id)
                         
-                    elif re.search(r"a@",mm)!=None:
-                        pid= self.getuser_id(msg)
+                    elif re.search(r"a",mm)!=None:
+                        pid= self.get_at_user_id(msg)
                         if not(pid in self.m.players):
                             self.send_msg_by_uid("无效攻击！",msg['user']['id'])
                             return None
+                            
                         msgg=self.m.attackplayer(src_id,pid)
                         if msgg[0]==0:
                             self.send_msg_by_uid(msgg[1],src_id)
@@ -92,17 +93,13 @@ class TulingWXBot(WXBot):
                             self.send_msg_by_uid(msgg[1],msg['user']['id'])
                             self.send_msg_by_uid(msgg[1],pid)
                             
-                    elif re.search(r"k@",mm)!=None:
-                        pid = self.getuser_id(msg)
-                        if not(pid in self.m.players):
-                            self.send_msg_by_uid("无效施法！",msg['user']['id'])
-                            return None
+                    elif re.search(r"k",mm)!=None:
+                        pid = self.get_at_user_id(msg)
                         msgk=self.m.castskill(src_id,pid)
-                        if msgg[0]==0:
-                            self.send_msg_by_uid(msgg[1],src_id)
+                        if msgk[0]==0:
+                            self.send_msg_by_uid(msgk[1],src_id)
                         else:
-                            self.send_msg_by_uid(msgg[1],msg['user']['id'])
-                            self.send_msg_by_uid(msgg[1],pid)
+                            self.send_msg_by_uid(msgk[1],msg['user']['id'])
                             
                     if self.m.event_death!=[]:
                         for event in self.m.event_death:
@@ -110,7 +107,7 @@ class TulingWXBot(WXBot):
                         self.m.event_death=[]
                         if len(self.m.players)<=1:
                             for winner in self.m.players.values():
-                                self.send_msg_by_uid(u"Winner Winner, Chicken Dinner!\n恭喜"+winner.name+u'!')
+                                self.send_msg_by_uid(u"Winner Winner, Chicken Dinner!\n恭喜"+winner.name+u'!',msg['user']['id'])
                             self.robot_switch = False
                     
                     

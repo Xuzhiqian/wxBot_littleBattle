@@ -52,10 +52,10 @@ class Player:
             self.skl=(25,40,True)
             
         elif self.character==4:
-            self.health=(50,50,0)
+            self.health=(60,60,0)
             self.magic=(100,100,2)
-            self.atk=(10,3,3,True)
-            self.skl=(70,80,True)
+            self.atk=(5,3,3,True)
+            self.skl=(70,60,True)
      
     def re_magic(self):
         if self.alive==True:
@@ -275,6 +275,8 @@ class Map:
         threading.Timer(p.skl[0],p.re_skl).start()
         return (1,u"实时：\n"+p.name+"成功使用了技能！")
     def lifesteal(self,_id,p_id):
+        if not(p_id in self.players):
+            return None
         p = self.players[_id]
         pp = self.players[p_id]
         if p.skl[2]==False:
