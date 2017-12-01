@@ -999,6 +999,8 @@ class WXBot:
         return dic['BaseResponse']['Ret'] == 0
 
     def send_msg_by_uid(self, word, dst='filehelper'):
+        if word=='':
+            return False
         url = self.base_uri + '/webwxsendmsg?pass_ticket=%s' % self.pass_ticket
         msg_id = str(int(time.time() * 1000)) + str(random.random())[:5].replace('.', '')
         word = self.to_unicode(word)
