@@ -17,7 +17,7 @@ class Player:
     id=0
     name=""
     character = 0
-    occu=["苦工食尸鬼","翌·邪魔","单·嗜血者","迪·遁隐","金·破尘","叶·黑爪",'超·纵魂']
+    occu=["苦工食尸鬼","翌·邪魔","单·嗜血者","迪·遁隐","金·破尘","叶·黑爪",'超·纵魂','赵·太二']
     location = (0, 0)
     alive=True
     
@@ -26,28 +26,28 @@ class Player:
     magic=(0,    0,   5)
 
     #    ATK    range       cd          enable
-    atk=(0,     1,          5,          True)
+    atk=(0,     2,          5,          True)
     
     #    cd     magic consumption       enable
     skl=(0,     0,                      True)
     
-    #   cd      magic consumption       enbale
-    #see=(3,     3,                      True)
-    
-    
     #   cd      magic consumption       enable
-    mov=(5,     2,                      True)
+    mov=(3,     2,                      True)
     
     #          cur      max     获得一个标记所需的（伤害等）量
     mark_thin=(0,       7,      10)
+    mark_cool=(0,       5)
+    
+    #      暴击几率      暴击效果
+    crit=(0.2,          3)
     locked=False
     
     def __init__(self, _id, _name):
         self.id=_id
         self.name = _name
-        self.character = random.randint(1, 2)
+        self.character = random.randint(1, 6)
         if self.character==1:
-            self.health=(60,60,0)
+            self.health=(80,80,0)
             self.magic=(100,100,4)
             self.atk=(10,2,5,True)
             self.skl=(40,40,True)
@@ -59,19 +59,19 @@ class Player:
             self.skl=(40,50,True)
 
         elif self.character==3:
-            self.health=(60,60,2)
+            self.health=(70,70,2)
             self.magic=(100,100,2)
             self.atk=(10,2,5,True)
             self.skl=(30,40,True)
             
         elif self.character==4:
-            self.health=(60,60,0)
+            self.health=(70,70,0)
             self.magic=(100,100,2)
             self.atk=(5,4,5,True)
             self.skl=(30,40,True)
         
         elif self.character==5:
-            self.health=(50,50,0)
+            self.health=(60,60,0)
             self.magic=(100,100,2)
             self.atk=(20,2,10,True)
             self.skl=(50,40,True)
@@ -80,6 +80,12 @@ class Player:
             self.health=(60,60,0)
             self.magic=(100,100,2)
             self.atk=(10,2,5,True)
+            self.skl=(60,50,True)
+            
+        elif self.character==7:
+            self.health=(60,60,0)
+            self.magic=(100,100,2)
+            self.atk=(10,2,3,True)
             self.skl=(60,50,True)
     
     def unlock(self):
@@ -103,6 +109,12 @@ class Player:
         mm=min(m,self.mark_thin[1])
         self.mark_thin=(mm,self.mark_thin[1],self.mark_thin[2])
         self.atk=(5+mm,self.atk[1],self.atk[2],self.atk[3])
+        
+    def set_mark_cool(self,m):
+        mm=min(m,self.mark_cool[1])
+        self.mark_cool=(mm,self.mark_cool[1])
+        self.crit=(self.crit[0]+0.02*mm,self.crit[1])
+        
     def re_mov(self):
         self.mov=(self.mov[0],self.mov[1],True)  
     
@@ -111,6 +123,9 @@ class Player:
         
     def re_skl(self):
         self.skl=(self.skl[0],self.skl[1],True)
+        
+    def takeoff_taticalvisor(self):
+        self.atk=(self.atk[0],2,self.atk[2],self.atk[3])
                     
 class Map:
     width = 12
@@ -139,16 +154,18 @@ class Map:
         self.map[p.location] = p
         self.blank.remove(p.location)
         p.re_magic()
-        p.re_health()
+        if p.health[2]>0:
+            p.re_health()
         
         if p.character==6:
             self.selfseparate(p.id)
     
-    def cause_dmg(self,p,dmg):
+    def cause_dmg(self,er,p,dmg):
         p.health=(p.health[0]-dmg,p.health[1],p.health[2])
         if p.character==2:
             p.set_mark_thin(p.mark_thin[0]+int(dmg/p.mark_thin[2]))
-            
+        if er.character==7:
+            er.set_mark_cool(er.mark_cool[0]+1)
     def get_neighbor_blank(self, p):
         neighbor=[]
         for i in range(p.location[0]-p.atk[1],p.location[0]+p.atk[1]+1):
@@ -245,18 +262,29 @@ class Map:
         else:
             p.atk=(p.atk[0],p.atk[1],p.atk[2],False)
             threading.Timer(p.atk[2],p.re_atk).start()
+            
+            dmg=p.atk[0]
+            lucky=False
+            if p.character==7:
+                if random.random()<p.crit[0]:
+                    lucky=True
+                    dmg=dmg*p.crit[1]           #Crit!!
+                    
+            atk_msg='A'
+            if lucky==True:
+                atk_msg=u'暴击A'
                 
-            actual_name=pp.name
+            actual_name=pp.name    
             if pp.character==0:
                 actual_name='苦工食尸鬼'   
-            if pp.health[0]-p.atk[0]<=0:
-                self.death(pp,p,u'A死了！',False)
+            if pp.health[0]-dmg<=0:
+                self.death(pp,p,atk_msg+u'死了！',False)
                 if p.character==5:
                     p.health=(p.health[1],p.health[1],p.health[2])
-                return (u"恭喜你！击杀了"+actual_name,   u"很遗憾！你出局了！凶手："+p.name,   u'死亡通告：'+actual_name+u'被'+p.name+u'A死了')
+                return (u"恭喜你！击杀了"+actual_name,   u"很遗憾！你出局了！凶手："+p.name,   u'死亡通告：'+actual_name+u'被'+p.name+atk_msg+u'死了')
             else:
-                self.cause_dmg(pp,p.atk[0])
-                return (u'你成功A了'+actual_name+u'一下',u'警告：你被'+p.name+u'A了一下',u'实时：'+p.name+u'A了'+actual_name+u'一下，还剩'+str(pp.health[0])+'血')
+                self.cause_dmg(p,pp,dmg)
+                return (u'你成功'+atk_msg+u'了'+actual_name+u'一下',u'警告：你被'+p.name+atk_msg+u'了一下',u'实时：'+p.name+atk_msg+u'了'+actual_name+u'一下，还剩'+str(pp.health[0])+'血')
     #如果踩到陷阱则立即处理    
     def check_if_trapped_and_dead(self,p):
         istrapped=False
@@ -265,7 +293,7 @@ class Map:
         for trap in self.traps:
             if self.dis(p.location,trap.center)<=trap.r:
                 istrapped=True
-                self.cause_dmg(p,trap.damage)
+                self.cause_dmg(None,p,trap.damage)
                 trapped.append(trap)
                 if p.health[0]<=0:
                     murderer=trap.owner
@@ -344,20 +372,22 @@ class Map:
             return (u"玩家不存在！",(),'')
         p=self.players[_id]
         if p.character==1: 
-            return self.vacanttrap(_id,p_id) 
+            return self.vacanttrap(_id) 
         elif p.character==2:
-            return self.eatalot(_id,p_id)
+            return self.eatalot(_id)
         elif p.character==3:
             return self.lifesteal(_id,p_id)
         elif p.character==4:
-            return self.magicsteal(_id,p_id)
+            return self.magicsteal(_id)
         elif p.character==5:
-            return self.terminate(_id,p_id)
+            return self.terminate(_id)
         elif p.character==6:
             return self.earthquake(_id)
+        elif p.character==7:
+            return self.overwatch(_id)
         return None
     
-    def terminate(self,_id,p_id):
+    def terminate(self,_id):
         p = self.players[_id]
         if p.skl[2]==False:
             return (u"技能还没准备好！",(),'')
@@ -373,7 +403,7 @@ class Map:
                          if (j,i) in self.map.keys():
                              if self.map[(j,i)].id!=p.id:
                                  pp=self.map[(j,i)]
-                                 self.cause_dmg(pp,0.3*(pp.health[1]-pp.health[0]))
+                                 self.cause_dmg(p,pp,0.3*(pp.health[1]-pp.health[0]))
                                  pid_set.append(pp.id)
                                  if (pp.health[0]<=0):
                                      self.death(pp,p,u'使用技能“终结”杀死了！\n'+p.name+u'恢复至满血！',True)
@@ -383,8 +413,24 @@ class Map:
         p.magic = (p.magic[0]-p.skl[1],p.magic[1],p.magic[2])
         threading.Timer(p.skl[0],p.re_skl).start()
         return (u'你成功使用了技能“终结”！',(u'严重警告：你被'+p.name+u'使用了技能！',pid_set),u"实时：\n"+p.name+"成功使用了技能！")
+    def overwatch(self, _id):
+        p = self.players[_id]
+        if p.skl[2]==False:
+            return (u"技能还没准备好！",(),'')￿
+        if p.magic[0]<p.skl[1]:
+            return (u"蓝量不够！",(),'')
+        if p.mark_cool[0]!=5:
+            return (u"标记不足！",(),'')
         
-    def eatalot(self, _id, p_id):
+        p.atk=(p.atk[0],self.width,p.atk[2],p.atk[3])       #overwatch!!
+        threading.Timer(12,p.takeoff_taticalvisor).start()
+        
+        p.skl=(p.skl[0],p.skl[1],False)
+        p.magic = (p.magic[0]-p.skl[1],p.magic[1],p.magic[2])
+        threading.Timer(p.skl[0],p.re_skl).start()
+        return (u'战术目镜启动！',(),u"实时：\n"+p.name+"成功使用了技能！")
+        
+    def eatalot(self, _id):
         p = self.players[_id]
         if p.skl[2]==False:
             return (u"技能还没准备好！",(),'')
@@ -395,7 +441,7 @@ class Map:
         
         heal=p.mark_thin[0]*8
         p.set_mark_thin(0)
-        p.health=(min(p.health[0]+heal,p.health[1]),p.health[1],p.health[2])
+        p.health=min(p.health[0]+heal,p.health[1]),p.health[1],p.health[2])
         p.skl=(p.skl[0],p.skl[1],False)
         p.magic = (p.magic[0]-p.skl[1],p.magic[1],p.magic[2])
         threading.Timer(p.skl[0],p.re_skl).start()
@@ -416,7 +462,7 @@ class Map:
                          if (j,i) in self.map.keys():
                              if self.map[(j,i)].id!=p.id:
                                  pp=self.map[(j,i)]
-                                 self.cause_dmg(pp,dmg)
+                                 self.cause_dmg(p,pp,dmg)
                                  pid_set.append(pp.id)
                                  if (pp.health[0]<=0):
                                      self.death(pp,p,u'用霜之哀伤捅死了，心疼~',True)
@@ -429,7 +475,7 @@ class Map:
         threading.Timer(p.skl[0],p.re_skl).start()
         return (u'你成功发动了技能“地震”！',(u'警告：你受到了技能：“地震”的影响！',pid_set),u"实时：\n"+p.name+"成功使用了技能！")
         
-    def magicsteal(self,_id,p_id):
+    def magicsteal(self,_id):
         p = self.players[_id]
         if p.skl[2]==False:
             return (u"技能还没准备好！",(),'')
@@ -472,7 +518,7 @@ class Map:
         threading.Timer(p.skl[0],p.re_skl).start()
         return (u'你成功偷取了'+pp.name+u'的生命！',(p.name+u"很狡猾！偷取了你的生命！",[pp.id]),u"实时：\n"+p.name+"成功使用了技能！")
         
-    def vacanttrap(self, _id, p_id):
+    def vacanttrap(self, _id):
         p = self.players[_id]
         if p.skl[2]==False:
             return (u"技能还没准备好！",(),'')
