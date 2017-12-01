@@ -55,14 +55,14 @@ class Player:
         elif self.character==2:
             self.health=(100,100,0)
             self.magic=(100,100,2)
-            self.atk=(3,2,5,True)
-            self.skl=(40,40,True)
+            self.atk=(5,2,5,True)
+            self.skl=(40,50,True)
 
         elif self.character==3:
             self.health=(60,60,2)
             self.magic=(100,100,2)
             self.atk=(10,2,5,True)
-            self.skl=(25,40,True)
+            self.skl=(30,40,True)
             
         elif self.character==4:
             self.health=(60,60,0)
