@@ -3,6 +3,7 @@
 
 import os
 import sys
+default_encoding = 'utf-8' 
 import traceback
 import webbrowser
 import pyqrcode
