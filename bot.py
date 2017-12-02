@@ -45,6 +45,11 @@ class TulingWXBot(WXBot):
             return pid_real
             
     def handle_msg_all(self, msg):
+        if msg['msg_type_id'] == 1 and msg['content']['type'] == 0:
+            if msg['content']['data']==u'game restart'
+                self.m=Map()
+                self.robot_switch=True
+                
         if not self.robot_switch: # and msg['msg_type_id'] != 1
             return
         if msg['msg_type_id'] == 3 and msg['content']['type'] == 0:  # group text message
@@ -66,8 +71,8 @@ class TulingWXBot(WXBot):
                             p = Player(src_id,src_name)                 
                             self.m.addplayer(p)
                             self.send_msg_by_uid("@"+src_name+'\n'+"加入成功！",self.group_id)
-                    else:
-                        self.send_msg_by_uid("sorry，错误的名字格式不利于游戏平衡\n正确格式：1至4个英文字母",self.group_id)
+                    #else:
+                        #self.send_msg_by_uid("sorry，错误的名字格式不利于游戏平衡\n正确格式：1至4个英文字母",self.group_id)
        
                             
         elif msg['msg_type_id'] == 4 and msg['content']['type'] == 0:
@@ -97,6 +102,8 @@ class TulingWXBot(WXBot):
                             
             elif result_skl!=None:
                 pid=self.get_id(result_skl.group(2))
+                if pid!=None:
+                    pid=pid[1:]
                 if src_id in self.m.players==False:
                     return
                 msgk=self.m.castskill(src_id,pid)
@@ -115,9 +122,9 @@ class TulingWXBot(WXBot):
                 self.m.event_death=[]
                 if len(self.m.players)<=1:
                     for winner in self.m.players.values():
-                        self.send_msg_by_uid(u"Winner Winner, Chicken Dinner!\n恭喜"+winner.name+u'!',self.group_id)
+                        self.send_msg_by_uid(u"Winner Winner, Chicken Dinner!\n恭喜"+winner.name+u'!'+'\n\n等待造物主xzq授权重新开始游戏...',self.group_id)
                     self.robot_switch = False
-                    
+            
                     
 def main():
     bot = TulingWXBot()

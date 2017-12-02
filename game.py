@@ -17,7 +17,7 @@ class Player:
     id=0
     name=""
     character = 0
-    occu=["苦工食尸鬼","翌·邪魔","单·嗜血者","迪·遁隐","金·破尘","叶·黑爪",'超·纵魂','赵·太二']
+    occu=["苦工食尸鬼","翌·邪魔","单·我不胖","迪·遁隐","金·破尘","叶·黑爪",'超·纵魂','赵·太二']
     location = (0, 0)
     alive=True
     
@@ -45,7 +45,7 @@ class Player:
     def __init__(self, _id, _name):
         self.id=_id
         self.name = _name
-        self.character = random.randint(1, 6)
+        self.character = random.randint(7, 7)
         if self.character==1:
             self.health=(80,80,0)
             self.magic=(100,100,4)
@@ -107,13 +107,15 @@ class Player:
     
     def set_mark_thin(self,m):
         mm=min(m,self.mark_thin[1])
+        
         self.mark_thin=(mm,self.mark_thin[1],self.mark_thin[2])
         self.atk=(5+mm,self.atk[1],self.atk[2],self.atk[3])
+        #print("---------------------------标记："+str(self.mark_thin))
         
     def set_mark_cool(self,m):
         mm=min(m,self.mark_cool[1])
         self.mark_cool=(mm,self.mark_cool[1])
-        self.crit=(self.crit[0]+0.02*mm,self.crit[1])
+        self.crit=(0.2+0.02*mm,self.crit[1])
         
     def re_mov(self):
         self.mov=(self.mov[0],self.mov[1],True)  
@@ -163,7 +165,7 @@ class Map:
     def cause_dmg(self,er,p,dmg):
         p.health=(p.health[0]-dmg,p.health[1],p.health[2])
         if p.character==2:
-            p.set_mark_thin(p.mark_thin[0]+int(dmg/p.mark_thin[2]))
+            p.set_mark_thin(p.mark_thin[0]+round(dmg/p.mark_thin[2]))
         if er.character==7:
             er.set_mark_cool(er.mark_cool[0]+1)
     def get_neighbor_blank(self, p):
@@ -232,7 +234,8 @@ class Map:
             msg_special=''
             if p.character==2:
                 msg_special=u'\n标记数量：'+str(p.mark_thin[0])+u'\n攻击力：'+str(p.atk[0])
-                
+            if p.character==7:
+                msg_special=u'\n标记数量：'+str(p.mark_cool[0])+u'\n暴击率：'+str(p.crit[0])
             return u"职业=" + p.occu[p.character] + u"\n" + u"位置=(" + str(p.location[0]) + u',' + str(p.location[1]) + ')\n' \
                     +u"血量=" + str(p.health[0]) + '\n' + u"蓝量=" + str(p.magic[0]) + '\n' + u"技能"+msg_ski+'\n'+self.getsight(p)+msg_special
         return ""
@@ -284,7 +287,7 @@ class Map:
                 return (u"恭喜你！击杀了"+actual_name,   u"很遗憾！你出局了！凶手："+p.name,   u'死亡通告：'+actual_name+u'被'+p.name+atk_msg+u'死了')
             else:
                 self.cause_dmg(p,pp,dmg)
-                return (u'你成功'+atk_msg+u'了'+actual_name+u'一下',u'警告：你被'+p.name+atk_msg+u'了一下',u'实时：'+p.name+atk_msg+u'了'+actual_name+u'一下，还剩'+str(pp.health[0])+'血')
+                return (u'你成功'+atk_msg+u'了'+actual_name+u'一下，还剩'+str(pp.health[0])+'血',u'警告：你被'+p.name+atk_msg+u'一下，还剩'+str(pp.health[0])+'血',u'实时：'+p.name+atk_msg+u'了'+actual_name+u'一下，还剩'+str(pp.health[0])+'血')
     #如果踩到陷阱则立即处理    
     def check_if_trapped_and_dead(self,p):
         istrapped=False
@@ -416,7 +419,7 @@ class Map:
     def overwatch(self, _id):
         p = self.players[_id]
         if p.skl[2]==False:
-            return (u"技能还没准备好！",(),'')￿
+            return (u"技能还没准备好！",(),'')
         if p.magic[0]<p.skl[1]:
             return (u"蓝量不够！",(),'')
         if p.mark_cool[0]!=5:
@@ -441,7 +444,7 @@ class Map:
         
         heal=p.mark_thin[0]*8
         p.set_mark_thin(0)
-        p.health=min(p.health[0]+heal,p.health[1]),p.health[1],p.health[2])
+        p.health=(min(p.health[0]+heal,p.health[1]),p.health[1],p.health[2])
         p.skl=(p.skl[0],p.skl[1],False)
         p.magic = (p.magic[0]-p.skl[1],p.magic[1],p.magic[2])
         threading.Timer(p.skl[0],p.re_skl).start()
