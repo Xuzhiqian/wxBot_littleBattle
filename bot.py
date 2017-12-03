@@ -45,7 +45,7 @@ class TulingWXBot(WXBot):
             
     def handle_msg_all(self, msg):
         if msg['msg_type_id'] == 1 and msg['content']['type'] == 0:
-            if re.search(r"restart",msg['content']['data'])!=Non:
+            if re.search(r"restart",msg['content']['data'])!=None:
                 self.m=Map()
                 self.robot_switch=True
                 self.send_msg_by_uid(u"游戏重新启动！",self.group_id)
