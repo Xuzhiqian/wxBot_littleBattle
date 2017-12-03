@@ -12,9 +12,7 @@ from game import Map,Player
 
 
 class TulingWXBot(WXBot):
-    m=Map()
-    group_id=''
-    
+
     pattern_join=re.compile(r"^(join) ([a-zA-Z]{1,4})( [1-6])?$")
     pattern_atk=re.compile(r"^(a) ([a-zA-Z]{1,4})$")
     pattern_skl=re.compile(r"^(k)( [a-zA-Z]{1,4})?$")
@@ -22,7 +20,8 @@ class TulingWXBot(WXBot):
     
     def __init__(self):
         WXBot.__init__(self)
-
+        self.m=Map()
+        self.group_id=''
         self.robot_switch = True
     
     def get_id(self,pname):
@@ -46,8 +45,7 @@ class TulingWXBot(WXBot):
             
     def handle_msg_all(self, msg):
         if msg['msg_type_id'] == 1 and msg['content']['type'] == 0:
-            if msg['content']['data']==u'game restart':
-                self.m=None
+            if re.search(r"restart",msg['content']['data'])!=Non:
                 self.m=Map()
                 self.robot_switch=True
                 self.send_msg_by_uid(u"游戏重新启动！",self.group_id)

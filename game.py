@@ -1,4 +1,7 @@
 #coding=utf-8
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
 import re
 import threading
 import random
@@ -38,8 +41,8 @@ class Player:
     mark_thin=(0,       7,      10)
     mark_cool=(0,       5)
     
-    #      暴击几率      暴击效果
-    crit=(0.2,          3)
+    #      暴击几率      暴击效果       初始暴击效果
+    crit=(0.2,          3,          0.2)
     locked=False
     
     def __init__(self, _id, _name):
@@ -115,7 +118,7 @@ class Player:
     def set_mark_cool(self,m):
         mm=min(m,self.mark_cool[1])
         self.mark_cool=(mm,self.mark_cool[1])
-        self.crit=(0.2+0.02*mm,self.crit[1])
+        self.crit=(self.crit[2]+0.02*mm,self.crit[1],self.crit[2])
         
     def re_mov(self):
         self.mov=(self.mov[0],self.mov[1],True)  
@@ -128,19 +131,18 @@ class Player:
         
     def takeoff_taticalvisor(self):
         self.atk=(self.atk[0],2,self.atk[2],self.atk[3])
+        self.set_mark_cool(0)
                     
 class Map:
-    width = 12
-    map = {}
-    players = {}
-    names={}
-    blank = []
-    event_death=[]
-    traps=[]
-
     def __init__(self):
+        self.width = 12
         self.map = {}
         self.players = {}
+        self.names={}
+        self.blank = []
+        self.event_death=[]
+        self.traps=[]
+        
         for i in range(self.width):
             for j in range(self.width):
                 self.blank.append((i, j))
