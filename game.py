@@ -48,7 +48,7 @@ class Player:
     def __init__(self, _id, _name):
         self.id=_id
         self.name = _name
-        self.character = random.randint(7, 7)
+        self.character = random.randint(1, 7)
         if self.character==1:
             self.health=(80,80,0)
             self.magic=(100,100,4)
